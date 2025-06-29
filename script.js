@@ -4,6 +4,7 @@ let flippedCards = [];
 let score = 0;
 let timer;
 let timeLeft = 60;
+let totalPairs = emojis.length;
 
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
@@ -13,20 +14,19 @@ function createBoard() {
   const board = document.getElementById("gameBoard");
   board.innerHTML = '';
   const allEmojis = shuffle([...emojis, ...emojis]); // 8 pairs
-
   cards = [];
 
   allEmojis.forEach((emoji, i) => {
     const col = document.createElement("div");
     col.className = "col-3 col-md-2";
-    
+
     const card = document.createElement("div");
     card.className = "card";
     card.dataset.emoji = emoji;
     card.dataset.index = i;
     card.innerHTML = "";
     card.addEventListener("click", flipCard);
-    
+
     col.appendChild(card);
     board.appendChild(col);
     cards.push(card);
@@ -51,6 +51,21 @@ function checkMatch() {
     score++;
     document.getElementById("score").innerText = score;
     flippedCards = [];
+
+    // Check for winning
+    if (score === totalPairs) {
+      clearInterval(timer);
+      setTimeout(() => {
+        Swal.fire({
+          title: '🎉 You Won!',
+          text: 'All emoji pairs matched!',
+          icon: 'success',
+          confirmButtonText: 'Play Again',
+          confirmButtonColor: '#ffc107'
+        }).then(() => startGame());
+      }, 500);
+    }
+
   } else {
     setTimeout(() => {
       card1.classList.remove("flipped");
@@ -70,9 +85,16 @@ function startTimer() {
   timer = setInterval(() => {
     timeLeft--;
     document.getElementById("timer").innerText = timeLeft;
+
     if (timeLeft === 0) {
       clearInterval(timer);
-      alert("⏰ Time's up! Your Score: " + score);
+      Swal.fire({
+        title: '⏰ Time\'s Up!',
+        text: `Your Score: ${score}`,
+        icon: 'warning',
+        confirmButtonText: 'Try Again',
+        confirmButtonColor: '#ffc107'
+      }).then(() => startGame());
     }
   }, 1000);
 }
@@ -86,9 +108,11 @@ function startGame() {
 
   // Restart music
   const music = document.getElementById("bgMusic");
-  music.pause();
-  music.currentTime = 0;
-  music.play();
+  if (music) {
+    music.pause();
+    music.currentTime = 0;
+    music.play();
+  }
 }
 
 window.onload = startGame;
